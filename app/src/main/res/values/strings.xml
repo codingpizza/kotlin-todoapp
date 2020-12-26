@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">TodoApp</string>
+    <string name="content_description_create_todo_action">Create a new Todo</string>
+    <string name="insert_todo_title">Title</string>
+    <string name="insert_todo_description">Note</string>
+    <string name="save_todo_action">Save</string>
+    <string name="list_fragment_title">Notes</string>
+    <string name="create_todo_fragment_title">New Note</string>
+    <string name="content_edit_note_button">Edit Note Button</string>
+    <string name="edit_note_title">Edit Note</string>
+</resources>
