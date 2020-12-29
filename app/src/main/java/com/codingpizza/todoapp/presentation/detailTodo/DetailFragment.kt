@@ -11,21 +11,23 @@ import androidx.navigation.fragment.navArgs
 import com.codingpizza.todoapp.R
 import com.codingpizza.todoapp.databinding.DetailFragmentBinding
 import com.codingpizza.todoapp.domain.model.Note
+import com.codingpizza.todoapp.utils.exhaustive
+import com.codingpizza.todoapp.utils.showLog
 import kotlinx.coroutines.flow.collect
 import org.koin.android.ext.android.inject
 
 class DetailFragment : Fragment() {
 
     private val viewModel: DetailViewModel by inject()
-    private var binding: DetailFragmentBinding? = null
+    private lateinit var binding: DetailFragmentBinding
     private val fragmentArgs: DetailFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = DetailFragmentBinding.inflate(layoutInflater, container, false)
-        return binding?.root
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -36,23 +38,21 @@ class DetailFragment : Fragment() {
     }
 
     private fun setButtonListener() {
-        binding?.apply {
+        binding.apply {
             button.setOnClickListener {
                 Log.d("DetailFragment", "${root.currentState}")
-                when (root.currentState) {
-                    R.id.start -> {
-                        Log.d("DetailFragment", "Start")
-                        root.transitionToEnd()
-                    }
-                    R.id.end -> {
-                        Log.d("DetailFragment", "End")
-                        viewModel.updateNote(
-                            title = editTitle.text.toString(),
-                            content = editContent.text.toString(),
-                            id = fragmentArgs.id
-                        )
-                        root.transitionToStart()
-                    }
+                if (root.currentState == R.id.start) {
+                    Log.d("DetailFragment", "Start")
+                    root.transitionToEnd()
+                }
+                else {
+                    Log.d("DetailFragment", "End")
+                    viewModel.updateNote(
+                        title = editTitle.text.toString(),
+                        content = editContent.text.toString(),
+                        id = fragmentArgs.id
+                    )
+                    root.transitionToStart()
                 }
             }
         }
@@ -75,20 +75,13 @@ class DetailFragment : Fragment() {
         }.exhaustive
     }
 
-    private fun showLog(message: String) {
-        Log.d("DetailFragment", message)
-    }
-
     private fun onNoteRetrieved(note: Note) {
-        binding?.apply {
+        binding.apply {
             title.text = note.title
             todoContent.text = note.content
             editTitle.setText(note.title)
             editContent.setText(note.content)
         }
     }
-
-    val <T> T.exhaustive: T get() = this
-
 
 }
