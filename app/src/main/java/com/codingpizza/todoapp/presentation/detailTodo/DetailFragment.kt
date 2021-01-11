@@ -40,13 +40,10 @@ class DetailFragment : Fragment() {
     private fun setButtonListener() {
         binding.apply {
             button.setOnClickListener {
-                Log.d("DetailFragment", "${root.currentState}")
                 if (root.currentState == R.id.start) {
-                    Log.d("DetailFragment", "Start")
                     root.transitionToEnd()
                 }
                 else {
-                    Log.d("DetailFragment", "End")
                     viewModel.updateNote(
                         title = editTitle.text.toString(),
                         content = editContent.text.toString(),
@@ -68,9 +65,9 @@ class DetailFragment : Fragment() {
 
     private fun handleState(detailUiState: DetailUiState) {
         when (detailUiState) {
-            DetailUiState.Loading -> showLog("Cargando nota...")
+            DetailUiState.Loading -> showLog("Loading Note...")
             is DetailUiState.Success -> onNoteRetrieved(detailUiState.note)
-            DetailUiState.Error -> showLog("Error cargando nota...")
+            DetailUiState.Error -> showLog("Error loading...")
             is DetailUiState.UpdateNote -> onNoteRetrieved(detailUiState.note)
         }.exhaustive
     }
