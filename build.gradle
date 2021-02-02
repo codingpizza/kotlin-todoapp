@@ -1,6 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = "1.4.20"
+    ext.kotlin_version = "1.4.21"
     repositories {
         google()
         jcenter()
@@ -10,16 +10,42 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         def nav_version = "2.3.1"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
-
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
+plugins {
+    id("io.gitlab.arturbosch.detekt").version("1.15.0")
+}
+
+subprojects{
+    apply{
+        plugin("io.gitlab.arturbosch.detekt")
+    }
+
+    detekt {
+        config = rootProject.files("config/detekt.yml")
+        buildUponDefaultConfig = true
+        failFast = true // fail build on any finding
+        reports {
+            html {
+                enabled = true
+                destination = file("build/reports/detekt.html")
+            }
+        }
+    }
+}
+
+tasks.detekt.jvmTarget = "1.8"
+
 allprojects {
     repositories {
         google()
         jcenter()
+    }
+    dependencies{
+        detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:1.15.0"
     }
 }
 
