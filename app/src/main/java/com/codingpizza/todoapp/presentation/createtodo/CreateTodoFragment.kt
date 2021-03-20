@@ -36,7 +36,7 @@ class CreateTodoFragment : Fragment() {
 
     private fun handleState(state: CreateTodoState) {
         when (state) {
-            CreateTodoState.Success -> onSuccess()
+            CreateTodoState.TodoSavedSuccess -> onSuccess()
             CreateTodoState.FormError -> onFormError()
             CreateTodoState.Loading -> {
                 Log.d("CreateTodoFragment", "Todo")

@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 class CreateTodoViewModel(private val repository: NoteRepository) : ViewModel() {
 
     private val _uiState: MutableStateFlow<CreateTodoState> =
-        MutableStateFlow(CreateTodoState.Loading)
+        MutableStateFlow(CreateTodoState.CurrentTodo(title = "",content = ""))
 
     val uiState: StateFlow<CreateTodoState> = _uiState
 
@@ -21,8 +21,13 @@ class CreateTodoViewModel(private val repository: NoteRepository) : ViewModel() 
         } else {
             viewModelScope.launch {
                 repository.createNote(Note(title = title, content = content))
-                _uiState.value = CreateTodoState.Success
+                _uiState.value = CreateTodoState.TodoSavedSuccess
             }
         }
+    }
+
+    fun setTextFieldValue(text: String) {
+        val textState = (_uiState.value as CreateTodoState.CurrentTodo)
+        _uiState.value = textState.copy(title = textState.title + text)
     }
 }

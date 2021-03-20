@@ -14,6 +14,7 @@ class DetailViewModel(private val repository: NoteRepository) : ViewModel() {
     private val _uiState: MutableStateFlow<DetailUiState> =
         MutableStateFlow(DetailUiState.Loading)
 
+
     val uiState: StateFlow<DetailUiState> = _uiState
 
     fun retrieveNote(id: Int) {
