@@ -1,9 +1,11 @@
 package com.codingpizza.todoapp.presentation.todolist
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,24 +20,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
+import androidx.hilt.navigation.compose.hiltNavGraphViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.navigate
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
 import com.codingpizza.todoapp.databinding.ListFragmentBinding
 import com.codingpizza.todoapp.domain.model.Note
 import com.codingpizza.todoapp.presentation.TodoLoading
 import com.codingpizza.todoapp.presentation.createtodo.CREATE_TODO_ROUTE
 import com.codingpizza.todoapp.presentation.createtodo.CreateTodoScreen
-import com.codingpizza.todoapp.presentation.createtodo.CreateTodoViewModel
-import org.koin.android.ext.android.inject
+import com.codingpizza.todoapp.presentation.detailTodo.DETAIL_SCREEN_ROUTE
+import com.codingpizza.todoapp.presentation.detailTodo.DETAIL_SCREEN_ROUTE_ID_PARAM_KEY
+import com.codingpizza.todoapp.presentation.detailTodo.DetailScreen
+import com.codingpizza.todoapp.utils.generateRoute
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ListFragment : Fragment() {
 
     private var binding: ListFragmentBinding? = null
-    private val viewModel: ListViewModel by inject()
-    private val todoViewModel : CreateTodoViewModel by inject()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,14 +56,10 @@ class ListFragment : Fragment() {
 
     private fun setupUI() {
         binding?.apply {
-            composeView.setContent{
+            composeView.setContent {
                 MaterialTheme {
                     val navController = rememberNavController()
-                    ListScreen(
-                        navController = navController,
-                        viewModel = viewModel,
-                        todoViewModel = todoViewModel
-                    )
+                    ListScreen(navController = navController)
                 }
             }
         }
@@ -74,17 +74,24 @@ class ListFragment : Fragment() {
 @Composable
 fun ListScreen(
     navController: NavHostController,
-    viewModel: ListViewModel,
-    todoViewModel: CreateTodoViewModel
+    viewModel: ListViewModel = viewModel(),
 ) {
     NavHost(navController = navController, startDestination = "list") {
-
         composable("list") {
-            TodoLazyColumn(navController,viewModel = viewModel)
+            TodoLazyColumn(navController = navController, viewModel = viewModel)
         }
 
         composable(CREATE_TODO_ROUTE) {
-            CreateTodoScreen(navController = navController,viewModel = todoViewModel)
+            CreateTodoScreen(navController = navController, viewModel = hiltNavGraphViewModel())
+        }
+
+        composable(
+            DETAIL_SCREEN_ROUTE,
+            arguments = listOf(navArgument(DETAIL_SCREEN_ROUTE_ID_PARAM_KEY) {
+                type = NavType.IntType
+            })
+        ) {
+            DetailScreen(navController = navController, viewModel = hiltNavGraphViewModel())
         }
     }
 }
@@ -93,7 +100,7 @@ fun ListScreen(
 fun TodoLazyColumn(navController: NavHostController, viewModel: ListViewModel) {
     viewModel.retrieveTodos()
     val listUiState by viewModel.uiState.collectAsState()
-    when (listUiState){
+    when (listUiState) {
         is ListUiState.Success -> TodoList(navController, listUiState as ListUiState.Success)
         is ListUiState.Error -> ErrorText(listUiState = listUiState as ListUiState.Error)
         ListUiState.Loading -> TodoLoading()
@@ -101,14 +108,14 @@ fun TodoLazyColumn(navController: NavHostController, viewModel: ListViewModel) {
 }
 
 @Composable
-fun ErrorText(listUiState: ListUiState.Error){
+fun ErrorText(listUiState: ListUiState.Error) {
     CenterBox {
         Text(text = "Ha ocurrido un error :( ${listUiState.errorMessage}")
     }
 }
 
 @Composable
-fun CenterBox(content: @Composable () -> Unit ) {
+fun CenterBox(content: @Composable () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -122,16 +129,26 @@ fun CenterBox(content: @Composable () -> Unit ) {
 @Composable
 fun TodoList(navController: NavHostController, listUiState: ListUiState.Success) {
     Scaffold(floatingActionButton = {
-        TodoFloatingActionButton(onClick = { navController.navigate(CREATE_TODO_ROUTE)})
+        TodoFloatingActionButton(onClick = { navController.navigate(CREATE_TODO_ROUTE) })
     }) {
         Column {
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(all = 16.dp)) {
-                items(items =
-                listUiState.listNote
-                ){ note ->
-                    TodoRow(note = note)
+                contentPadding = PaddingValues(all = 16.dp)
+            ) {
+                items(
+                    items =
+                    listUiState.listNote
+                ) { note ->
+                    TodoRow(note = note, onClick = {
+                        val route = generateRoute(
+                            DETAIL_SCREEN_ROUTE,
+                            DETAIL_SCREEN_ROUTE_ID_PARAM_KEY,
+                            note.uid
+                        )
+                        Log.d("OnClick", "La ruta es $route")
+                        navController.navigate(route)
+                    })
                 }
             }
         }
@@ -139,15 +156,19 @@ fun TodoList(navController: NavHostController, listUiState: ListUiState.Success)
 }
 
 @Composable
-fun TodoFloatingActionButton(onClick : () -> Unit)  {
+fun TodoFloatingActionButton(onClick: () -> Unit) {
     FloatingActionButton(onClick = onClick) {
         Icon(imageVector = Icons.Default.Edit, contentDescription = "Create new todo")
     }
 }
 
 @Composable
-fun TodoRow(note : Note) {
-    Card(elevation = 4.dp, modifier = Modifier.padding(top = 16.dp)) {
+fun TodoRow(note: Note, onClick: () -> Unit) {
+    Card(
+        elevation = 4.dp, modifier = Modifier
+            .padding(top = 16.dp)
+            .clickable(onClick = onClick)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

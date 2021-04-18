@@ -3,13 +3,16 @@ package com.codingpizza.todoapp.presentation.todolist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codingpizza.todoapp.domain.repository.NoteRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ListViewModel(private val noteRepository: NoteRepository) : ViewModel() {
+@HiltViewModel
+class ListViewModel @Inject constructor(private val noteRepository: NoteRepository) : ViewModel() {
 
     private val _uiState: MutableStateFlow<ListUiState> = MutableStateFlow(ListUiState.Loading)
     val uiState: StateFlow<ListUiState> = _uiState

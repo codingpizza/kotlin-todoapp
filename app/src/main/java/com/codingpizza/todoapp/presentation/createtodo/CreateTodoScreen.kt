@@ -1,85 +1,51 @@
 package com.codingpizza.todoapp.presentation.createtodo
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.codingpizza.todoapp.presentation.TodoForm
 import com.codingpizza.todoapp.presentation.TodoLoading
+import com.codingpizza.todoapp.presentation.TodoSavedSuccessFully
 
 const val CREATE_TODO_ROUTE = "createtodo"
 
 @Composable
-fun CreateTodoScreen(viewModel: CreateTodoViewModel, navController: NavHostController) {
+fun CreateTodoScreen(
+    viewModel: CreateTodoViewModel = viewModel(),
+    navController: NavHostController
+) {
     val state by viewModel.uiState.collectAsState()
 
     Scaffold {
         when (state) {
             CreateTodoState.FormError -> TODO()
             CreateTodoState.Loading -> TodoLoading()
-            CreateTodoState.TodoSavedSuccess -> TODO()
-            is CreateTodoState.CurrentTodo -> TodoScreenContent(
-                createTodoViewModel = viewModel,
-                state = state as CreateTodoState.CurrentTodo
-            )
+            CreateTodoState.TodoSavedSuccess -> TodoSavedSuccessFully(navController = navController)
+            is CreateTodoState.CurrentTodo -> {
+                CreateTodoContent(state as CreateTodoState.CurrentTodo, viewModel)
+            }
         }
     }
 }
 
 @Composable
-fun TodoScreenContent(
+fun CreateTodoContent(
     state: CreateTodoState.CurrentTodo,
-    createTodoViewModel: CreateTodoViewModel
+    viewModel: CreateTodoViewModel
 ) {
-    Column {
-        val (textTitle, setTextTitle) = remember { mutableStateOf(TextFieldValue("")) }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = TextFieldValue(state.title),
-                onValueChange = { textFieldValue -> createTodoViewModel.setTextFieldValue(textFieldValue.text) },
-                label = { Text("Title:") },
+    TodoForm(
+        titleValue = state.title,
+        onTitleValueChange = { textFieldValue -> viewModel.setTitleValue(textFieldValue) },
+        contentValue = state.content,
+        onContentValueChange = { viewModel.setContentValue(it) },
+        onButtonClick = {
+            viewModel.storeNote(
+                title = state.title,
+                content = state.content
             )
         }
-        val (textNote, setTextNote) = remember { mutableStateOf(TextFieldValue("")) }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .wrapContentHeight()
-        ) {
-            TextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = textNote,
-                onValueChange = { setTextNote(it) },
-                label = { Text("Note:") },
-            )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Button(
-                onClick = { /*TODO*/ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text("Save")
-            }
-        }
-    }
-
+    )
 }

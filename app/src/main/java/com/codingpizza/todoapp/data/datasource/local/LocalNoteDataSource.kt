@@ -3,8 +3,9 @@ package com.codingpizza.todoapp.data.datasource.local
 import com.codingpizza.todoapp.data.datasource.NoteDataSource
 import com.codingpizza.todoapp.domain.model.Note
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class LocalNoteDataSource(private val database: AppDatabase) : NoteDataSource {
+class LocalNoteDataSource @Inject constructor(private val database: AppDatabase) : NoteDataSource {
 
     override fun retrieveNotes(): Flow<List<Note>> = database.noteDao().getAllNotes()
 
